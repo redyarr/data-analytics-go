@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+
+
+
+option go_package = "/proto";
+
+enum Gender {
+    
+    MALE = 0;
+    FEMALE = 1;
+
+
+}
+// Define the request and response messages
+message Student {
+
+    string name = 1;
+    int32 age = 2;
+    float grade = 3;
+
+    string gender = 4;
+
+
+
+}
+
+
+message PercentageResponse {
+    float male_percentage = 1;
+    float female_percentage = 2;
+}
+
+
+
+
+
+// Define the response message for GetStudent RPC
+message StudentResponse {
+    Student student = 1;
+}
+
+// Define the response message for GetStudent RPC
+
+
+
+
+message StudentsResponse {
+    repeated Student students = 1;
+}
+
+
+
+message StudentRequest {
+    string name = 1;
+}
+
+message Empty {}
+
+// Service definition
+
+
+message AverageGradeResponse {
+    float average_grade = 1;
+}
+
+
+
+message MaxAgeByGenderResponse {
+    int32 male_max_age = 1;
+    int32 female_max_age = 2;
+}
+
+message MinAgeByGenderResponse {
+    int32 male_min_age = 1;
+    int32 female_min_age = 2;
+}
+
+service StudentService {
+    rpc AddStudent (Student) returns (Empty); 
+    rpc GetStudent (StudentRequest) returns (Student);
+    rpc GetAverageGrade (Empty) returns (AverageGradeResponse);
+    rpc getGenderPercentage (Empty) returns (PercentageResponse);
+    rpc getMaxAgeByGender (Empty) returns (MaxAgeByGenderResponse);
+    rpc getMinAgeByGender (Empty) returns (MinAgeByGenderResponse);
+    rpc getAverageGradeByGender (Empty) returns (AverageGradeByGenderResponse);
+
+
+}
+
+
+
+
+
+
+message AverageGradeByGenderResponse{
+    float male_average_grade = 1;
+    float female_average_grade = 2;
+
+}
