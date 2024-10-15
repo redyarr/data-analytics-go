@@ -26,6 +26,7 @@ const (
 	StudentService_GetMaxAgeByGender_FullMethodName       = "/StudentService/getMaxAgeByGender"
 	StudentService_GetMinAgeByGender_FullMethodName       = "/StudentService/getMinAgeByGender"
 	StudentService_GetAverageGradeByGender_FullMethodName = "/StudentService/getAverageGradeByGender"
+	StudentService_GetCombinedData_FullMethodName         = "/StudentService/GetCombinedData"
 )
 
 // StudentServiceClient is the client API for StudentService service.
@@ -39,6 +40,7 @@ type StudentServiceClient interface {
 	GetMaxAgeByGender(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MaxAgeByGenderResponse, error)
 	GetMinAgeByGender(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MinAgeByGenderResponse, error)
 	GetAverageGradeByGender(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*AverageGradeByGenderResponse, error)
+	GetCombinedData(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CombinedResponse, error)
 }
 
 type studentServiceClient struct {
@@ -119,6 +121,16 @@ func (c *studentServiceClient) GetAverageGradeByGender(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *studentServiceClient) GetCombinedData(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*CombinedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CombinedResponse)
+	err := c.cc.Invoke(ctx, StudentService_GetCombinedData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StudentServiceServer is the server API for StudentService service.
 // All implementations must embed UnimplementedStudentServiceServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type StudentServiceServer interface {
 	GetMaxAgeByGender(context.Context, *Empty) (*MaxAgeByGenderResponse, error)
 	GetMinAgeByGender(context.Context, *Empty) (*MinAgeByGenderResponse, error)
 	GetAverageGradeByGender(context.Context, *Empty) (*AverageGradeByGenderResponse, error)
+	GetCombinedData(context.Context, *Empty) (*CombinedResponse, error)
 	mustEmbedUnimplementedStudentServiceServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedStudentServiceServer) GetMinAgeByGender(context.Context, *Emp
 }
 func (UnimplementedStudentServiceServer) GetAverageGradeByGender(context.Context, *Empty) (*AverageGradeByGenderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAverageGradeByGender not implemented")
+}
+func (UnimplementedStudentServiceServer) GetCombinedData(context.Context, *Empty) (*CombinedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCombinedData not implemented")
 }
 func (UnimplementedStudentServiceServer) mustEmbedUnimplementedStudentServiceServer() {}
 func (UnimplementedStudentServiceServer) testEmbeddedByValue()                        {}
@@ -308,6 +324,24 @@ func _StudentService_GetAverageGradeByGender_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StudentService_GetCombinedData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StudentServiceServer).GetCombinedData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StudentService_GetCombinedData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StudentServiceServer).GetCombinedData(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StudentService_ServiceDesc is the grpc.ServiceDesc for StudentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +376,10 @@ var StudentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "getAverageGradeByGender",
 			Handler:    _StudentService_GetAverageGradeByGender_Handler,
+		},
+		{
+			MethodName: "GetCombinedData",
+			Handler:    _StudentService_GetCombinedData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

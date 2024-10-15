@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -114,4 +115,20 @@ func main() {
 	}
 	log.Printf("Average Grade by Gender: Male: %.2f, Female: %.2f", avgGradeResp.MaleAverageGrade, avgGradeResp.FemaleAverageGrade)
 
+	empty := &pb.Empty{}
+
+	// Call the GetCombinedData method on the server
+	combinedResponse, err := client.GetCombinedData(context.Background(), empty)
+	if err != nil {
+		log.Fatalf("failed to get combined data: %v", err)
+	}
+
+	// Marshal the response data into JSON
+	jsonBytes, err := json.Marshal(combinedResponse)
+	if err != nil {
+		log.Fatalf("failed to marshal combined data: %v", err)
+	}
+
+	// Print the JSON data to the terminal
+	fmt.Println(string(jsonBytes))
 }

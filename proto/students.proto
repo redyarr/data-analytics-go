@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 
+import "google/protobuf/struct.proto";
 
 
 option go_package = "/proto";
@@ -84,6 +85,8 @@ service StudentService {
     rpc getMaxAgeByGender (Empty) returns (MaxAgeByGenderResponse);
     rpc getMinAgeByGender (Empty) returns (MinAgeByGenderResponse);
     rpc getAverageGradeByGender (Empty) returns (AverageGradeByGenderResponse);
+        rpc GetCombinedData (Empty) returns (CombinedResponse);
+
 
 
 }
@@ -98,3 +101,8 @@ message AverageGradeByGenderResponse{
     float female_average_grade = 2;
 
 }
+
+
+message CombinedResponse {
+    google.protobuf.Struct json = 1;
+  }

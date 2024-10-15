@@ -5,23 +5,19 @@ import (
 	"fmt"
 	"log"
 	"net"
-	models "student-analytics/model" 
+	models "student-analytics/model"
 	pb "student-analytics/proto"
 
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
-
 
 type server struct {
 	pb.UnimplementedStudentServiceServer
 	db *gorm.DB
 }
-
-
-
 
 func (s *server) AddStudent(ctx context.Context, student *pb.Student) (*pb.Empty, error) {
 	newStudent := models.Student{
@@ -36,9 +32,6 @@ func (s *server) AddStudent(ctx context.Context, student *pb.Student) (*pb.Empty
 	return &pb.Empty{}, nil
 }
 
-
-
-
 func (s *server) GetStudent(ctx context.Context, req *pb.StudentRequest) (*pb.Student, error) {
 	var student models.Student
 	if err := s.db.First(&student, "name = ?", req.Name).Error; err != nil {
@@ -46,9 +39,6 @@ func (s *server) GetStudent(ctx context.Context, req *pb.StudentRequest) (*pb.St
 	}
 	return &pb.Student{Name: student.Name, Age: int32(student.Age), Grade: student.Grade}, nil
 }
-
-
-
 
 func (s *server) GetAverageGrade(ctx context.Context, empty *pb.Empty) (*pb.AverageGradeResponse, error) {
 	var students []models.Student
@@ -60,10 +50,6 @@ func (s *server) GetAverageGrade(ctx context.Context, empty *pb.Empty) (*pb.Aver
 	average := total / float64(len(students))
 	return &pb.AverageGradeResponse{AverageGrade: float32(average)}, nil
 }
-
-
-
-
 
 func (s *server) GetGenderPercentage(ctx context.Context, empty *pb.Empty) (*pb.PercentageResponse, error) {
 
@@ -91,10 +77,6 @@ func (s *server) GetGenderPercentage(ctx context.Context, empty *pb.Empty) (*pb.
 
 }
 
-
-
-
-
 func (s *server) GetMaxAgeByGender(ctx context.Context, empty *pb.Empty) (*pb.MaxAgeByGenderResponse, error) {
 
 	var students []models.Student
@@ -108,9 +90,6 @@ func (s *server) GetMaxAgeByGender(ctx context.Context, empty *pb.Empty) (*pb.Ma
 	}, nil
 }
 
-
-
-
 func (s *server) GetMinAgeByGender(ctx context.Context, empty *pb.Empty) (*pb.MinAgeByGenderResponse, error) {
 	var students []models.Student
 	var maleMinAge, femaleMinAge int
@@ -122,8 +101,6 @@ func (s *server) GetMinAgeByGender(ctx context.Context, empty *pb.Empty) (*pb.Mi
 		FemaleMinAge: int32(femaleMinAge),
 	}, nil
 }
-
-
 
 func (s *server) GetAverageGradeByGender(ctx context.Context, empty *pb.Empty) (*pb.AverageGradeByGenderResponse, error) {
 	var students []models.Student
@@ -139,9 +116,18 @@ func (s *server) GetAverageGradeByGender(ctx context.Context, empty *pb.Empty) (
 
 }
 
-
-
-
+func (s *server) GetCombinedData(ctx context.Context, req *pb.Empty) (*pb.CombinedResponse, error) {
+	// Return a sample response
+	return &pb.CombinedResponse{
+		Json: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"key": {
+					Kind: &structpb.Value_StringValue{StringValue: "value"},
+				},
+			},
+		},
+	}, nil
+}
 
 func main() {
 	srv := grpc.NewServer()
@@ -163,12 +149,6 @@ func main() {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
-
-
-
-
-
-
 
 func connectDB() (*gorm.DB, error) {
 	dsn := "root:Alsard12123@tcp(127.0.0.1:3306)/students_db?charset=utf8mb4&parseTime=True&loc=Local"
