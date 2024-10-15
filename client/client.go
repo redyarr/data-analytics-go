@@ -118,17 +118,20 @@ func main() {
 	empty := &pb.Empty{}
 
 	// Call the GetCombinedData method on the server
-	combinedResponse, err := client.GetCombinedData(context.Background(), empty)
+	resp, err := client.GetCombinedData(ctx, empty)
 	if err != nil {
-		log.Fatalf("failed to get combined data: %v", err)
+		log.Fatalf("could not get combined data: %v", err)
 	}
 
-	// Marshal the response data into JSON
-	jsonBytes, err := json.Marshal(combinedResponse)
-	if err != nil {
-		log.Fatalf("failed to marshal combined data: %v", err)
-	}
+	// Convert the response to a JSON string for better readability in the terminal
+	prettyPrint(resp)
+}
 
-	// Print the JSON data to the terminal
-	fmt.Println(string(jsonBytes))
+// prettyPrint formats the gRPC response into JSON and prints it
+func prettyPrint(resp *pb.CombinedResponse) {
+	jsonData, err := json.MarshalIndent(resp, "", "    ")
+	if err != nil {
+		log.Fatalf("failed to marshal combined response: %v", err)
+	}
+	fmt.Println(string(jsonData))
 }

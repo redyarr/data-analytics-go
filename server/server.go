@@ -9,7 +9,6 @@ import (
 	pb "student-analytics/proto"
 
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/structpb"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -116,19 +115,76 @@ func (s *server) GetAverageGradeByGender(ctx context.Context, empty *pb.Empty) (
 
 }
 
-func (s *server) GetCombinedData(ctx context.Context, req *pb.Empty) (*pb.CombinedResponse, error) {
-	// Return a sample response
-	return &pb.CombinedResponse{
-		Json: &structpb.Struct{
-			Fields: map[string]*structpb.Value{
-				"key": {
-					Kind: &structpb.Value_StringValue{StringValue: "value"},
-				},
-			},
-		},
-	}, nil
+func connectDB() (*gorm.DB, error) {
+
+	dsn := "root:Alsard12123@tcp(127.168.0.1:3306)/students_db?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatal("failed to connect to database: ", err)
+
+	}
+
+	if err := models.Migrate(db); err != nil {
+		log.Fatal("failed to migrate database: ", err)
+	}
+
+	return db, nil
+
 }
 
+func (s *server) GetCombinedData(ctx context.Context, req *pb.Empty) (*pb.CombinedResponse, error) {
+    // Reuse the existing GetAverageGrade function
+    avgGradeResp, err := s.GetAverageGrade(ctx, req)
+    if err != nil {
+        return nil, err
+    }
+
+    // Reuse the existing GetGenderPercentage function
+    genderPercentageResp, err := s.GetGenderPercentage(ctx, req)
+    if err != nil {
+        return nil, err
+    }
+
+    // Reuse the existing GetMaxAgeByGender function
+    maxAgeResp, err := s.GetMaxAgeByGender(ctx, req)
+    if err != nil {
+        return nil, err
+    }
+
+    // Reuse the existing GetMinAgeByGender function
+    minAgeResp, err := s.GetMinAgeByGender(ctx, req)
+    if err != nil {
+        return nil, err
+    }
+
+    // Fetch all students to include in the combined response
+    var students []models.Student
+    if err := s.db.Find(&students).Error; err != nil {
+        return nil, err
+    }
+
+    // Convert students to protobuf format
+    var pbStudents []*pb.Student
+    for _, student := range students {
+        pbStudents = append(pbStudents, &pb.Student{
+            Name:   student.Name,
+            Age:    int32(student.Age),
+            Grade:  student.Grade,
+            Gender: student.Gender,
+        })
+    }
+
+    // Combine all the results into a single response
+    combinedResponse := &pb.CombinedResponse{
+        Students:         pbStudents,
+        AverageGrade:     avgGradeResp.AverageGrade,
+        GenderPercentage: genderPercentageResp,
+        MaxAge:           maxAgeResp,
+        MinAge:           minAgeResp,
+    }
+
+    return combinedResponse, nil
+}
 func main() {
 	srv := grpc.NewServer()
 
@@ -148,19 +204,4 @@ func main() {
 	if err := srv.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-}
-
-func connectDB() (*gorm.DB, error) {
-	dsn := "root:Alsard12123@tcp(127.0.0.1:3306)/students_db?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal("failed to connect to database: ", err)
-	}
-
-	if err := models.Migrate(db); err != nil {
-		log.Fatal("failed to migrate database: ", err)
-	}
-
-	return db, nil
-
 }

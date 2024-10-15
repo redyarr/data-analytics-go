@@ -103,6 +103,12 @@ message AverageGradeByGenderResponse{
 }
 
 
+
+
 message CombinedResponse {
-    google.protobuf.Struct json = 1;
-  }
+    repeated Student students = 1;
+    float average_grade = 2;
+    PercentageResponse gender_percentage = 3;
+    MaxAgeByGenderResponse max_age = 4;
+    MinAgeByGenderResponse min_age = 5;
+}
