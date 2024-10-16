@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	models "student-analytics/model"
 	pb "student-analytics/proto"
 
@@ -117,11 +118,19 @@ func (s *server) GetAverageGradeByGender(ctx context.Context, empty *pb.Empty) (
 
 func connectDB() (*gorm.DB, error) {
 
-	dsn := "root:Alsard12123@tcp(127.168.0.1:3306)/students_db?charset=utf8mb4&parseTime=True&loc=Local"
+	// Retrieve environment variables
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	// Create the Data Source Name (DSN)
+	dsn := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
+
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect to database: ", err)
-
 	}
 
 	if err := models.Migrate(db); err != nil {
@@ -129,61 +138,60 @@ func connectDB() (*gorm.DB, error) {
 	}
 
 	return db, nil
-
 }
 
 func (s *server) GetCombinedData(ctx context.Context, req *pb.Empty) (*pb.CombinedResponse, error) {
-    // Reuse the existing GetAverageGrade function
-    avgGradeResp, err := s.GetAverageGrade(ctx, req)
-    if err != nil {
-        return nil, err
-    }
+	// Reuse the existing GetAverageGrade function
+	avgGradeResp, err := s.GetAverageGrade(ctx, req)
+	if err != nil {
+		return nil, err
+	}
 
-    // Reuse the existing GetGenderPercentage function
-    genderPercentageResp, err := s.GetGenderPercentage(ctx, req)
-    if err != nil {
-        return nil, err
-    }
+	// Reuse the existing GetGenderPercentage function
+	genderPercentageResp, err := s.GetGenderPercentage(ctx, req)
+	if err != nil {
+		return nil, err
+	}
 
-    // Reuse the existing GetMaxAgeByGender function
-    maxAgeResp, err := s.GetMaxAgeByGender(ctx, req)
-    if err != nil {
-        return nil, err
-    }
+	// Reuse the existing GetMaxAgeByGender function
+	maxAgeResp, err := s.GetMaxAgeByGender(ctx, req)
+	if err != nil {
+		return nil, err
+	}
 
-    // Reuse the existing GetMinAgeByGender function
-    minAgeResp, err := s.GetMinAgeByGender(ctx, req)
-    if err != nil {
-        return nil, err
-    }
+	// Reuse the existing GetMinAgeByGender function
+	minAgeResp, err := s.GetMinAgeByGender(ctx, req)
+	if err != nil {
+		return nil, err
+	}
 
-    // Fetch all students to include in the combined response
-    var students []models.Student
-    if err := s.db.Find(&students).Error; err != nil {
-        return nil, err
-    }
+	// Fetch all students to include in the combined response
+	var students []models.Student
+	if err := s.db.Find(&students).Error; err != nil {
+		return nil, err
+	}
 
-    // Convert students to protobuf format
-    var pbStudents []*pb.Student
-    for _, student := range students {
-        pbStudents = append(pbStudents, &pb.Student{
-            Name:   student.Name,
-            Age:    int32(student.Age),
-            Grade:  student.Grade,
-            Gender: student.Gender,
-        })
-    }
+	// Convert students to protobuf format
+	var pbStudents []*pb.Student
+	for _, student := range students {
+		pbStudents = append(pbStudents, &pb.Student{
+			Name:   student.Name,
+			Age:    int32(student.Age),
+			Grade:  student.Grade,
+			Gender: student.Gender,
+		})
+	}
 
-    // Combine all the results into a single response
-    combinedResponse := &pb.CombinedResponse{
-        Students:         pbStudents,
-        AverageGrade:     avgGradeResp.AverageGrade,
-        GenderPercentage: genderPercentageResp,
-        MaxAge:           maxAgeResp,
-        MinAge:           minAgeResp,
-    }
+	// Combine all the results into a single response
+	combinedResponse := &pb.CombinedResponse{
+		Students:         pbStudents,
+		AverageGrade:     avgGradeResp.AverageGrade,
+		GenderPercentage: genderPercentageResp,
+		MaxAge:           maxAgeResp,
+		MinAge:           minAgeResp,
+	}
 
-    return combinedResponse, nil
+	return combinedResponse, nil
 }
 func main() {
 	srv := grpc.NewServer()

@@ -1,0 +1,17 @@
+# Use the official Golang image
+FROM golang:1.20
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the client source code into the container
+COPY . .
+
+# Install dependencies (assuming you're using go modules)
+RUN go mod download
+
+# Build the client binary
+RUN go build -o client .
+
+# Command to run the client
+CMD ["./client"]

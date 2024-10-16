@@ -1,0 +1,49 @@
+
+
+services:
+  grpc_server:
+    build:
+      context: ./server
+    ports:
+      - "3000:3000"  # Map port 3000 of the host to port 3000 of the container
+    networks:
+      - grpc-network
+
+  grpc_client:
+    build:
+      context: ./client
+    depends_on:
+      - grpc_server
+    networks:
+      - grpc-network
+
+  app:
+    image: sht-redyar  # Replace with the image for your application
+    ports:
+      - "8080:8080"  # Map container port to host port (modify as needed)
+    environment:
+      DB_HOST: "db"  # Use the service name as hostname
+      DB_PORT: "3306"  # Port of the MySQL database
+      DB_USER: "root"  # Your MySQL username
+      DB_PASS: "Alsard12123"  # Your MySQL password
+      DB_NAME: "students_db"  # Your MySQL database name
+    networks:
+      - app-network  # Ensure this service is in the correct network
+
+  db:  # Adding a database service
+    image: mysql:5.7  # Using MySQL image
+    environment:
+      MYSQL_DATABASE: "students_db"  # Creates the database
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "Alsard12123"
+      MYSQL_ROOT_PASSWORD: "Alsard12123"  # Change to a secure password
+    ports:
+      - "3306:3306"  # Expose MySQL port
+    networks:
+      - app-network  # Ensure database is on the same network
+
+networks:
+  grpc-network:
+    driver: bridge
+  app-network:
+    driver: bridge  # Both networks are using the bridge driver
